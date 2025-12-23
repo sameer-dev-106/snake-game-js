@@ -19,10 +19,19 @@ const timeElement = document.querySelector('#time');
 
 // Each block size (used to calculate rows & columns)
 const blockHeight = 30;
-const blockWidth =30;
+const blockWidth = 30;
+
+// Sound
+const movingSound = new Audio('./sound/snake-moving.mp3')
+const eatSound = new Audio('./sound/eating.mp3')
+const gameOverSound = new Audio('./sound/game-over.mp3')
+
+//
+movingSound.loop = true;
+movingSound.volume = 0.2;
 
 // Game state variables
-let highScore = localStorage.getItem("highScore") || 0 ;
+let highScore = localStorage.getItem("highScore") || 0;
 let score = 0;
 let time = `00-00`;
 
@@ -40,8 +49,8 @@ let direction = 'right';
 let isPaused = false;
 
 let food = {
-    x: Math.floor(Math.random()*rows),
-    y: Math.floor(Math.random()*cols)
+    x: Math.floor(Math.random() * rows),
+    y: Math.floor(Math.random() * cols)
 };
 
 let snake = [
@@ -57,12 +66,12 @@ const blocks = {};
 // Create grid blocks dynamically
 for (let row = 0; row < rows; row++) {
     for (let col = 0; col < cols; col++) {
-        
+
         const block = document.createElement('div');
         block.classList.add('block');
         board.appendChild(block);
         // block.innerText = `${row}-${col}`;
-        blocks[`${row}-${col}`] = block;        
+        blocks[`${row}-${col}`] = block;
     }
 };
 
@@ -80,41 +89,70 @@ speedButtons.forEach(btn => {
     });
 });
 
+// 
+let touchStartX = 0;
+let touchStartY = 0;
+
+// 
+board.addEventListener('touchstart', (e) => {
+    const touch = e.touches[0];
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+});
+
+// 
+board.addEventListener('touchend', (e) => {
+    const touch = e.changedTouches[0];
+    let dx = touch.clientX - touchStartX;
+    let dy = touch.clientY - touchStartY
+
+    //
+    if (Math.abs(dx) > Math.abs(dy)) {
+        if (dx > 0 && direction !== 'left') direction = 'right';
+        if (dx < 0 && direction !== 'right') direction = 'left';
+    } else {
+        if (dy > 0 && direction !== 'up') direction = 'down'
+        if (dy < 0 && direction !== 'down') direction = 'up'
+    }
+});
+
 function renderSnake() {
     if (isPaused) return;
     // adding food on board
     blocks[`${food.x}-${food.y}`].classList.add('food');
-    let head  = null;
+    let head = null;
     // set snakes directions
     if (direction === 'down') {
-        head  = { x: snake[0].x + 1, y: snake[0].y }
+        head = { x: snake[0].x + 1, y: snake[0].y }
     } else if (direction === 'up') {
-        head  = { x: snake[0].x - 1, y: snake[0].y }
+        head = { x: snake[0].x - 1, y: snake[0].y }
     } else if (direction === 'left') {
-        head  = { x: snake[0].x, y: snake[0].y - 1 }
+        head = { x: snake[0].x, y: snake[0].y - 1 }
     } else if (direction === 'right') {
-        head  = { x: snake[0].x, y: snake[0].y + 1 }
-    }    
+        head = { x: snake[0].x, y: snake[0].y + 1 }
+    }
     // wall collision logic
-    if (head .x < 0 || head .x >= rows || head .y < 0 || head .y >= cols) {
+    if (head.x < 0 || head.x >= rows || head.y < 0 || head.y >= cols) {
         showGameOver();
         return;
     }
     // Self collision
-    if (snake.some(seg => seg.x === head .x && seg.y === head .y)) {
+    if (snake.some(seg => seg.x === head.x && seg.y === head.y)) {
         showGameOver();
         return;
     }
     // Remove previous food safely
-    if (head .x === food.x && head .y === food.y) {
+    if (head.x === food.x && head.y === food.y) {
         blocks[`${food.x}-${food.y}`].classList.remove('food')
         food = {
             x: Math.floor(Math.random() * rows),
             y: Math.floor(Math.random() * cols)
         }
+        // Play eating sound
+        eatSound.play();
 
         blocks[`${food.x}-${food.y}`].classList.add('food')
-        snake.push(head )
+        snake.push(head)
 
         score += 10;
         scoreElement.innerHTML = score
@@ -126,9 +164,10 @@ function renderSnake() {
     }
     // Remove snake body safely
     snake.forEach(segment => {
-        blocks[`${segment.x}-${segment.y}`].classList.remove('fill');
+        const block = blocks[`${segment.x}-${segment.y}`];
+        if (block) block.classList.remove('fill');
     });
-    
+
     snake.unshift(head)
     snake.pop()
     snake.forEach(segment => {
@@ -148,6 +187,10 @@ function showGameOver() {
     clearInterval(intervalId);
     clearInterval(timeIntervalId);
 
+    gameOverSound.play();
+
+    movingSound.pause();
+
     isPaused = false;
 
     modal.style.display = 'flex'
@@ -157,29 +200,31 @@ function showGameOver() {
 
 function timeCounter() {
     let [min, sec] = time.split('-').map(Number);
-    
+
     if (sec === 59) {
         min += 1
         sec = 0
     } else {
         sec += 1
     }
-    
+
     time = `${min}-${sec}`
-    
+
     timeElement.innerHTML = time
 }
 
 function togglePause() {
     if (startGameModal.style.display !== 'none' || gameOverModal.style.display === 'flex') return;
-    if(isPaused){
+    if (isPaused) {
         // Resume game
         intervalId = setInterval(() => { renderSnake(); }, speed)
-        timeIntervalId =setInterval(() => { timeCounter() }, 1000)
+        timeIntervalId = setInterval(() => { timeCounter() }, 1000)
         isPaused = false;
         // hiding Pause/Resume Window
         modal.style.display = 'none'
         gamePauseModal.style.display = 'none';
+        // Moving sound play
+        movingSound.play();
     } else {
         // Pause game
         clearInterval(intervalId);
@@ -190,6 +235,8 @@ function togglePause() {
         startGameModal.style.display = 'none'
         gameOverModal.style.display = 'none'
         gamePauseModal.style.display = 'flex';
+        // Moving Sound Pause
+        movingSound.pause();
     }
 }
 
@@ -198,7 +245,7 @@ function handleEnterAction() {
         startGame();
     } else if (gameOverModal.style.display !== 'none') {
         restartGame();
-    } else if (gamePauseModal.style.display !==  'none') {
+    } else if (gamePauseModal.style.display !== 'none') {
         togglePause(); // Resume or Pause
     }
 }
@@ -207,29 +254,38 @@ function startGame() {
     modal.style.display = 'none';
     startGameModal.style.display = 'none';
 
+    movingSound.play();
+
     clearInterval(intervalId);
     clearInterval(timeIntervalId);
 
-    intervalId = setInterval(() => { renderSnake() }, speed);
-    timeIntervalId = setInterval(() => { timeCounter() }, 1000);
+    intervalId = setInterval(() => renderSnake(), speed);
+    timeIntervalId = setInterval(() => timeCounter(), 1000);
 
     isPaused = false;
 }
 
-function restartGame () {   
-    showGameOver();
+function restartGame() {
+    clearInterval(intervalId);
+    clearInterval(timeIntervalId);
+
+    modal.style.display = 'none';
+    gameOverModal.style.display = 'none';
+    gamePauseModal.style.display = 'none';
 
     isPaused = false;
 
+    movingSound.play();
+
     direction = 'right';
 
-    if (blocks[`${food.x}-${food.y}`]){
+    if (blocks[`${food.x}-${food.y}`]) {
         blocks[`${food.x}-${food.y}`].classList.remove('food')
     }
 
     snake.forEach(segment => {
         const block = blocks[`${segment.x}-${segment.y}`]
-        if(block) block.classList.remove('fill');
+        if (block) block.classList.remove('fill');
     });
 
     score = 0;
@@ -239,7 +295,6 @@ function restartGame () {
     timeElement.innerHTML = time;
     highScoreElement.innerHTML = highScore;
 
-    modal.style.display = 'none'
     snake = [{
         x: Math.floor(Math.random() * rows),
         y: Math.floor(Math.random() * cols)
@@ -259,10 +314,10 @@ function restartGame () {
 }
 
 addEventListener('keydown', (e) => {
-    if (e.key === "ArrowUp" && direction !== 'down') return direction = 'up'
-    if (e.key === 'ArrowDown' && direction !== 'up') return direction = 'down'
-    if (e.key === 'ArrowLeft' && direction !== 'right') return direction = 'left'
-    if (e.key === 'ArrowRight' && direction !== 'left') return direction = 'right'
-    if (e.key === ' ') return togglePause(); 
-    if(e.key === 'Enter') return handleEnterAction(); 
-} );
+    if (e.key === "ArrowUp" && direction !== 'down') direction = 'up'
+    if (e.key === 'ArrowDown' && direction !== 'up') direction = 'down'
+    if (e.key === 'ArrowLeft' && direction !== 'right') direction = 'left'
+    if (e.key === 'ArrowRight' && direction !== 'left') direction = 'right'
+    if (e.key === ' ') togglePause();
+    if (e.key === 'Enter') handleEnterAction();
+});
