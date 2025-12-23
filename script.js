@@ -296,7 +296,7 @@ function loadingPage(fnc) {
         sounds.loading.currentTime = 0;
         fnc();
         gameLoadingPage.style.display = 'none'
-    }, 5000);
+    }, 2000);
 }
 
 function toggleMute() {
