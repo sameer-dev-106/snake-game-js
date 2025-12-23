@@ -1,242 +1,295 @@
-// Board and modal elements selected from HTML
+// ============================================
+// DOM ELEMENTS
+// ============================================
 const board = document.querySelector('.board');
 const modal = document.querySelector('.modal');
 const startGameModal = document.querySelector('.start-game');
 const gameOverModal = document.querySelector('.game-over');
 const gamePauseModal = document.querySelector('.game-pause');
 
-// Start and restart buttons
 const startButton = document.querySelector('.btn-start');
-const restartButton = document.querySelectorAll('.btn-restart');
-
-// Game Levels buttons
+const restartButtons = document.querySelectorAll('.btn-restart');
 const speedButtons = document.querySelectorAll("[data-speed]");
 
-// Score and timer elements
 const highScoreElement = document.querySelector('#high-score');
 const scoreElement = document.querySelector('#score');
 const timeElement = document.querySelector('#time');
 
-// Each block size (used to calculate rows & columns)
-const blockHeight = 30;
-const blockWidth = 30;
+// ============================================
+// CONSTANTS
+// ============================================
+const BLOCK_SIZE = 30;
+const COLS = Math.floor(board.clientWidth / BLOCK_SIZE);
+const ROWS = Math.floor(board.clientHeight / BLOCK_SIZE);
 
-// Sound
-const movingSound = new Audio('./sound/snake-moving.mp3')
-const eatSound = new Audio('./sound/eating.mp3')
-const gameOverSound = new Audio('./sound/game-over.mp3')
-
-//
-movingSound.loop = true;
-movingSound.volume = 0.2;
-
-// Game state variables
-let highScore = localStorage.getItem("highScore") || 0;
-let score = 0;
-let time = `00-00`;
-
-highScoreElement.innerHTML = highScore;
-
-// Calculate number of rows and columns dynamically
-const cols = Math.floor(board.clientWidth / blockWidth);
-const rows = Math.floor(board.clientHeight / blockHeight);
-
-let intervalId = null;
-let timeIntervalId = null;
-
-let direction = 'right';
-
-let isPaused = false;
-
-let food = {
-    x: Math.floor(Math.random() * rows),
-    y: Math.floor(Math.random() * cols)
+// ============================================
+// AUDIO
+// ============================================
+const sounds = {
+    moving: new Audio('./sound/snake-moving.mp3'),
+    eat: new Audio('./sound/eating.mp3'),
+    gameOver: new Audio('./sound/game-over.mp3')
 };
 
-let snake = [
-    {
-        x: 3,
-        y: 4,
-    },
-];
+sounds.moving.loop = true;
+sounds.moving.volume = 0.2;
 
-// Store all blocks using "row-col" as key
+// ============================================
+// GAME STATE
+// ============================================
+let gameState = {
+    highScore: parseInt(localStorage.getItem("highScore")) || 0,
+    score: 0,
+    time: '00-00',
+    speed: 300,
+    direction: 'right',
+    isPaused: false,
+    hasStarted: false,
+    intervalId: null,
+    timeIntervalId: null,
+    food: generateRandomPosition(),
+    snake: [{ x: 3, y: 4 }],
+    touchStart: { x: 0, y: 0 }
+};
+
+// Initialize high score display
+highScoreElement.innerHTML = gameState.highScore;
+
+// ============================================
+// BOARD SETUP
+// ============================================
 const blocks = {};
 
-// Create grid blocks dynamically
-for (let row = 0; row < rows; row++) {
-    for (let col = 0; col < cols; col++) {
-
-        const block = document.createElement('div');
-        block.classList.add('block');
-        board.appendChild(block);
-        // block.innerText = `${row}-${col}`;
-        blocks[`${row}-${col}`] = block;
+function createBoard() {
+    for (let row = 0; row < ROWS; row++) {
+        for (let col = 0; col < COLS; col++) {
+            const block = document.createElement('div');
+            block.classList.add('block');
+            board.appendChild(block);
+            blocks[`${row}-${col}`] = block;
+        }
     }
-};
+}
 
-// Defualt Speed  
-let speed = 300;
+createBoard();
 
-speedButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-        // Remove Class From All Button
-        speedButtons.forEach(b => b.classList.remove('active'));
-        // Adding class on Clicked Button
-        btn.classList.add('active')
-        // Set Speed Value From Clicked Button
-        speed = Number(btn.dataset.speed);
-    });
-});
+// ============================================
+// UTILITY FUNCTIONS
+// ============================================
+function generateRandomPosition() {
+    return {
+        x: Math.floor(Math.random() * ROWS),
+        y: Math.floor(Math.random() * COLS)
+    };
+}
 
-// 
-let touchStartX = 0;
-let touchStartY = 0;
+function updateDisplay() {
+    scoreElement.innerHTML = gameState.score;
+    timeElement.innerHTML = gameState.time;
+    highScoreElement.innerHTML = gameState.highScore;
+}
 
-// 
-board.addEventListener('touchstart', (e) => {
-    const touch = e.touches[0];
-    touchStartX = touch.clientX;
-    touchStartY = touch.clientY;
-});
+function showModal(modalToShow) {
+    modal.style.display = 'flex';
+    startGameModal.style.display = 'none';
+    gameOverModal.style.display = 'none';
+    gamePauseModal.style.display = 'none';
 
-// 
-board.addEventListener('touchend', (e) => {
-    const touch = e.changedTouches[0];
-    let dx = touch.clientX - touchStartX;
-    let dy = touch.clientY - touchStartY
+    if (modalToShow) modalToShow.style.display = 'flex';
+}
 
-    //
-    if (Math.abs(dx) > Math.abs(dy)) {
-        if (dx > 0 && direction !== 'left') direction = 'right';
-        if (dx < 0 && direction !== 'right') direction = 'left';
-    } else {
-        if (dy > 0 && direction !== 'up') direction = 'down'
-        if (dy < 0 && direction !== 'down') direction = 'up'
+function hideModal() {
+    modal.style.display = 'none';
+    startGameModal.style.display = 'none';
+    gameOverModal.style.display = 'none';
+    gamePauseModal.style.display = 'none';
+}
+
+// ============================================
+// TIME COUNTER
+// ============================================
+function timeCounter() {
+    let [min, sec] = gameState.time.split('-').map(Number);
+
+    sec++;
+    if (sec === 60) {
+        min++;
+        sec = 0;
     }
-});
 
-function renderSnake() {
-    if (isPaused) return;
-    // adding food on board
-    blocks[`${food.x}-${food.y}`].classList.add('food');
-    let head = null;
-    // set snakes directions
-    if (direction === 'down') {
-        head = { x: snake[0].x + 1, y: snake[0].y }
-    } else if (direction === 'up') {
-        head = { x: snake[0].x - 1, y: snake[0].y }
-    } else if (direction === 'left') {
-        head = { x: snake[0].x, y: snake[0].y - 1 }
-    } else if (direction === 'right') {
-        head = { x: snake[0].x, y: snake[0].y + 1 }
-    }
-    // wall collision logic
-    if (head.x < 0 || head.x >= rows || head.y < 0 || head.y >= cols) {
-        showGameOver();
-        return;
+    gameState.time = `${String(min).padStart(2, '0')}-${String(sec).padStart(2, '0')}`;
+    updateDisplay();
+}
+
+// ============================================
+// GAME LOGIC
+// ============================================
+function getNextHead() {
+    const head = gameState.snake[0];
+    const moves = {
+        down: { x: head.x + 1, y: head.y },
+        up: { x: head.x - 1, y: head.y },
+        left: { x: head.x, y: head.y - 1 },
+        right: { x: head.x, y: head.y + 1 }
+    };
+    return moves[gameState.direction];
+}
+
+function checkCollision(head) {
+    // Wall collision
+    if (head.x < 0 || head.x >= ROWS || head.y < 0 || head.y >= COLS) {
+        return true;
     }
     // Self collision
-    if (snake.some(seg => seg.x === head.x && seg.y === head.y)) {
-        showGameOver();
-        return;
+    return gameState.snake.some(seg => seg.x === head.x && seg.y === head.y);
+}
+
+function handleFoodEaten(head) {
+    // Remove old food
+    const foodBlock = blocks[`${gameState.food.x}-${gameState.food.y}`];
+    if (foodBlock) foodBlock.classList.remove('food');
+
+    // Generate new food
+    gameState.food = generateRandomPosition();
+    blocks[`${gameState.food.x}-${gameState.food.y}`].classList.add('food');
+
+    // Grow snake
+    gameState.snake.push(head);
+
+    // Update score
+    gameState.score += 10;
+    if (gameState.score > gameState.highScore) {
+        gameState.highScore = gameState.score;
+        localStorage.setItem('highScore', gameState.highScore);
     }
-    // Remove previous food safely
-    if (head.x === food.x && head.y === food.y) {
-        blocks[`${food.x}-${food.y}`].classList.remove('food')
-        food = {
-            x: Math.floor(Math.random() * rows),
-            y: Math.floor(Math.random() * cols)
-        }
-        // Play eating sound
-        eatSound.play();
+    updateDisplay();
 
-        blocks[`${food.x}-${food.y}`].classList.add('food')
-        snake.push(head)
+    sounds.eat.play();
+}
 
-        score += 10;
-        scoreElement.innerHTML = score
-
-        if (score > highScore) {
-            highScore = score
-            localStorage.setItem('highScore', highScore)
-        }
-    }
-    // Remove snake body safely
-    snake.forEach(segment => {
+function clearSnake() {
+    gameState.snake.forEach(segment => {
         const block = blocks[`${segment.x}-${segment.y}`];
         if (block) block.classList.remove('fill');
     });
-
-    snake.unshift(head)
-    snake.pop()
-    snake.forEach(segment => {
-        blocks[`${segment.x}-${segment.y}`].classList.add('fill');
-    });
-};
-
-startButton.addEventListener('click', startGame);
-
-// restartButton.addEventListener('click', restartGame);
-restartButton.forEach((btn) => {
-    btn.addEventListener('click', restartGame);
-})
-
-
-function showGameOver() {
-    clearInterval(intervalId);
-    clearInterval(timeIntervalId);
-
-    gameOverSound.play();
-
-    movingSound.pause();
-
-    isPaused = false;
-
-    modal.style.display = 'flex'
-    startGameModal.style.display = 'none'
-    gameOverModal.style.display = 'flex'
 }
 
-function timeCounter() {
-    let [min, sec] = time.split('-').map(Number);
+function drawSnake() {
+    gameState.snake.forEach(segment => {
+        const block = blocks[`${segment.x}-${segment.y}`];
+        if (block) block.classList.add('fill');
+    });
+}
 
-    if (sec === 59) {
-        min += 1
-        sec = 0
-    } else {
-        sec += 1
+function renderSnake() {
+    if (gameState.isPaused) return;
+
+    // Draw food
+    blocks[`${gameState.food.x}-${gameState.food.y}`].classList.add('food');
+
+    const head = getNextHead();
+
+    // Check collisions
+    if (checkCollision(head)) {
+        gameOver();
+        return;
     }
 
-    time = `${min}-${sec}`
+    // Clear previous snake
+    clearSnake();
 
-    timeElement.innerHTML = time
+    // Check if food eaten
+    if (head.x === gameState.food.x && head.y === gameState.food.y) {
+        handleFoodEaten(head);
+    }
+
+    // Move snake
+    gameState.snake.unshift(head);
+    gameState.snake.pop();
+
+    // Draw snake
+    drawSnake();
+}
+
+// ============================================
+// GAME CONTROLS
+// ============================================
+function startGame() {
+    hideModal();
+    gameState.hasStarted = true;
+    sounds.moving.play();
+
+    clearInterval(gameState.intervalId);
+    clearInterval(gameState.timeIntervalId);
+
+    gameState.intervalId = setInterval(renderSnake, gameState.speed);
+    gameState.timeIntervalId = setInterval(timeCounter, 1000);
+    gameState.isPaused = false;
+}
+
+function restartGame() {
+    // Clear intervals
+    clearInterval(gameState.intervalId);
+    clearInterval(gameState.timeIntervalId);
+
+    // Hide modals
+    hideModal();
+
+    // Reset audio
+    sounds.moving.play();
+
+    // Clear board
+    clearSnake();
+    const foodBlock = blocks[`${gameState.food.x}-${gameState.food.y}`];
+    if (foodBlock) foodBlock.classList.remove('food');
+
+    // Reset game state
+    gameState.score = 0;
+    gameState.time = '00-00';
+    gameState.direction = 'right';
+    gameState.isPaused = false;
+    gameState.snake = [generateRandomPosition()];
+    gameState.food = generateRandomPosition();
+
+    // Update display
+    updateDisplay();
+    blocks[`${gameState.food.x}-${gameState.food.y}`].classList.add('food');
+
+    // Start game
+    gameState.intervalId = setInterval(renderSnake, gameState.speed);
+    gameState.timeIntervalId = setInterval(timeCounter, 1000);
+}
+
+function gameOver() {
+    clearInterval(gameState.intervalId);
+    clearInterval(gameState.timeIntervalId);
+
+    sounds.gameOver.play();
+    sounds.moving.pause();
+
+    gameState.isPaused = false;
+    gameState.hasStarted = false;
+    showModal(gameOverModal);
 }
 
 function togglePause() {
-    if (startGameModal.style.display !== 'none' || gameOverModal.style.display === 'flex') return;
-    if (isPaused) {
-        // Resume game
-        intervalId = setInterval(() => { renderSnake(); }, speed)
-        timeIntervalId = setInterval(() => { timeCounter() }, 1000)
-        isPaused = false;
-        // hiding Pause/Resume Window
-        modal.style.display = 'none'
-        gamePauseModal.style.display = 'none';
-        // Moving sound play
-        movingSound.play();
+    // Don't pause if game hasn't started or already over
+    if (!gameState.hasStarted) return; 
+
+    if (gameState.isPaused) {
+        // Resume
+        gameState.intervalId = setInterval(renderSnake, gameState.speed);
+        gameState.timeIntervalId = setInterval(timeCounter, 1000);
+        gameState.isPaused = false;
+        hideModal();
+        sounds.moving.play();
     } else {
-        // Pause game
-        clearInterval(intervalId);
-        clearInterval(timeIntervalId);
-        isPaused = true;
-        // Showing Pause/Resume Window
-        modal.style.display = 'flex'
-        startGameModal.style.display = 'none'
-        gameOverModal.style.display = 'none'
-        gamePauseModal.style.display = 'flex';
-        // Moving Sound Pause
-        movingSound.pause();
+        // Pause
+        clearInterval(gameState.intervalId);
+        clearInterval(gameState.timeIntervalId);
+        gameState.isPaused = true;
+        showModal(gamePauseModal);
+        sounds.moving.pause();
     }
 }
 
@@ -246,78 +299,59 @@ function handleEnterAction() {
     } else if (gameOverModal.style.display !== 'none') {
         restartGame();
     } else if (gamePauseModal.style.display !== 'none') {
-        togglePause(); // Resume or Pause
+        togglePause();
     }
 }
 
-function startGame() {
-    modal.style.display = 'none';
-    startGameModal.style.display = 'none';
+// ============================================
+// EVENT LISTENERS
+// ============================================
 
-    movingSound.play();
-
-    clearInterval(intervalId);
-    clearInterval(timeIntervalId);
-
-    intervalId = setInterval(() => renderSnake(), speed);
-    timeIntervalId = setInterval(() => timeCounter(), 1000);
-
-    isPaused = false;
-}
-
-function restartGame() {
-    clearInterval(intervalId);
-    clearInterval(timeIntervalId);
-
-    modal.style.display = 'none';
-    gameOverModal.style.display = 'none';
-    gamePauseModal.style.display = 'none';
-
-    isPaused = false;
-
-    movingSound.play();
-
-    direction = 'right';
-
-    if (blocks[`${food.x}-${food.y}`]) {
-        blocks[`${food.x}-${food.y}`].classList.remove('food')
-    }
-
-    snake.forEach(segment => {
-        const block = blocks[`${segment.x}-${segment.y}`]
-        if (block) block.classList.remove('fill');
+// Speed selection
+speedButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+        speedButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        gameState.speed = Number(btn.dataset.speed);
     });
+});
 
-    score = 0;
-    time = `00-00`
-
-    scoreElement.innerHTML = score;
-    timeElement.innerHTML = time;
-    highScoreElement.innerHTML = highScore;
-
-    snake = [{
-        x: Math.floor(Math.random() * rows),
-        y: Math.floor(Math.random() * cols)
-    }]
-
-    food = {
-        x: Math.floor(Math.random() * rows),
-        y: Math.floor(Math.random() * cols)
-    }
-    blocks[`${food.x}-${food.y}`].classList.add('food')
-
-
-    timeIntervalId = setInterval(() => { timeCounter() }, 1000);
-
-    intervalId = setInterval(() => { renderSnake() }, speed);
-
-}
-
+// Keyboard controls
 addEventListener('keydown', (e) => {
-    if (e.key === "ArrowUp" && direction !== 'down') direction = 'up'
-    if (e.key === 'ArrowDown' && direction !== 'up') direction = 'down'
-    if (e.key === 'ArrowLeft' && direction !== 'right') direction = 'left'
-    if (e.key === 'ArrowRight' && direction !== 'left') direction = 'right'
+    const { direction } = gameState;
+
+    if (e.key === "ArrowUp" && direction !== 'down') gameState.direction = 'up';
+    if (e.key === 'ArrowDown' && direction !== 'up') gameState.direction = 'down';
+    if (e.key === 'ArrowLeft' && direction !== 'right') gameState.direction = 'left';
+    if (e.key === 'ArrowRight' && direction !== 'left') gameState.direction = 'right';
     if (e.key === ' ') togglePause();
     if (e.key === 'Enter') handleEnterAction();
 });
+
+// Touch controls
+board.addEventListener('touchstart', (e) => {
+    const touch = e.touches[0];
+    gameState.touchStart.x = touch.clientX;
+    gameState.touchStart.y = touch.clientY;
+});
+
+board.addEventListener('touchend', (e) => {
+    const touch = e.changedTouches[0];
+    const dx = touch.clientX - gameState.touchStart.x;
+    const dy = touch.clientY - gameState.touchStart.y;
+    const { direction } = gameState;
+
+    if (Math.abs(dx) > Math.abs(dy)) {
+        // Horizontal swipe
+        if (dx > 0 && direction !== 'left') gameState.direction = 'right';
+        if (dx < 0 && direction !== 'right') gameState.direction = 'left';
+    } else {
+        // Vertical swipe
+        if (dy > 0 && direction !== 'up') gameState.direction = 'down';
+        if (dy < 0 && direction !== 'down') gameState.direction = 'up';
+    }
+});
+
+// Button controls
+startButton.addEventListener('click', startGame);
+restartButtons.forEach(btn => btn.addEventListener('click', restartGame));
