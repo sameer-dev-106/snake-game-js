@@ -101,7 +101,26 @@ section {
     border: 1px solid var(--border-primary-color);
 }
 
-.fill { background-color: var(--bg-fill-color); }
+.fill {
+    background-color: var(--bg-fill-color);
+    animation: pop 0.1s ease-in-out;
+}
+
+@keyframes pop {
+    from { transform: scale(0.8); }
+    to { transform: scale(1); }
+}
+
+.board.shake {
+    animation: shake 0.3s;
+}
+
+@keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-5px); }
+}
 
 .food { background-color: red; }
 

@@ -248,6 +248,7 @@ function restartGame() {
     gameState.time = '00-00';
     gameState.direction = 'right';
     gameState.isPaused = false;
+    gameState.hasStarted = true;
     gameState.snake = [generateRandomPosition()];
     gameState.food = generateRandomPosition();
 
@@ -270,6 +271,9 @@ function gameOver() {
     gameState.isPaused = false;
     gameState.hasStarted = false;
     showModal(gameOverModal);
+
+    board.classList.add('shake');
+    setTimeout(() => board.classList.remove('shake'), 300);
 }
 
 function togglePause() {
