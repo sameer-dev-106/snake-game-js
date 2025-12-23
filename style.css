@@ -101,6 +101,8 @@ section {
     border: 1px solid var(--border-primary-color);
 }
 
+.food { background-color: red; }
+
 .fill {
     background-color: var(--bg-fill-color);
     animation: pop 0.1s ease-in-out;
@@ -122,7 +124,45 @@ section {
     75% { transform: translateX(-5px); }
 }
 
-.food { background-color: red; }
+/* Loding Animatio code */
+.loader {
+    position: fixed;
+    bottom: 5%;
+    width: fit-content;
+    font-weight: bold;
+    font-family: monospace;
+    white-space: pre;
+    font-size: 30px;
+    line-height: 1.2em;
+    height:1.2em;
+    overflow: hidden;
+}
+
+.loader:before {
+    content:"Loading...\A⌰oading...\A⌰⍜ading...\A⌰⍜⏃ding...\A⌰⍜⏃⎅ing...\A⌰⍜⏃⎅⟟ng...\A⌰⍜⏃⎅⟟⋏g...\A⌰⍜⏃⎅⟟⋏☌...\A⌰⍜⏃⎅⟟⋏☌⟒..\A⌰⍜⏃⎅⟟⋏☌⟒⏁.\A⌰⍜⏃⎅⟟⋏☌⟒⏁⋔"; 
+    white-space: pre;
+    display: inline-block;
+    animation: l39 1s infinite steps(11) alternate;
+}
+
+@keyframes l39 {
+    100%{transform: translateY(-100%)}
+}
+
+.loading-page {
+    width: 100vw;
+    height: 100vh;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-4xl);
+}
+
+.loading-page h3 {
+    text-transform: capitalize;
+    font-size: var(--font-xl);
+}
 
 .modal {
     height: 100vh;
@@ -161,6 +201,14 @@ section {
     flex-direction: column;
     align-items: center;
     gap: var(--space-border-sm);
+}
+
+.btn-mute {
+    position: fixed;
+    top: 5%;
+    right: 5%;
+    background-color: #111;
+    border: 1px solid var(--bg-fill-color) !important;
 }
 
 .btns {

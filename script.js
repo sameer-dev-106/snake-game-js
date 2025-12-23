@@ -6,10 +6,14 @@ const modal = document.querySelector('.modal');
 const startGameModal = document.querySelector('.start-game');
 const gameOverModal = document.querySelector('.game-over');
 const gamePauseModal = document.querySelector('.game-pause');
+const gameLevleModal = document.querySelector('.game-levels');
+const gameLoadingPage = document.querySelector('.loading-page');
 
 const startButton = document.querySelector('.btn-start');
 const restartButtons = document.querySelectorAll('.btn-restart');
+const resumeButton = document.querySelector('.btn-resume');
 const speedButtons = document.querySelectorAll("[data-speed]");
+const muteButton = document.querySelector('.btn-mute');
 
 const highScoreElement = document.querySelector('#high-score');
 const scoreElement = document.querySelector('#score');
@@ -28,7 +32,8 @@ const ROWS = Math.floor(board.clientHeight / BLOCK_SIZE);
 const sounds = {
     moving: new Audio('./sound/snake-moving.mp3'),
     eat: new Audio('./sound/eating.mp3'),
-    gameOver: new Audio('./sound/game-over.mp3')
+    gameOver: new Audio('./sound/game-over.mp3'),
+    loading: new Audio('./sound/loading-sound.mp3')
 };
 
 sounds.moving.loop = true;
@@ -39,6 +44,7 @@ sounds.moving.volume = 0.2;
 // ============================================
 let gameState = {
     highScore: parseInt(localStorage.getItem("highScore")) || 0,
+    isMuted: JSON.parse(localStorage.getItem("isMuted")) || false,
     score: 0,
     time: '00-00',
     speed: 300,
@@ -91,9 +97,10 @@ function updateDisplay() {
 
 function showModal(modalToShow) {
     modal.style.display = 'flex';
+    gameLevleModal.style.display = 'flex';
+    gamePauseModal.style.display = 'none';
     startGameModal.style.display = 'none';
     gameOverModal.style.display = 'none';
-    gamePauseModal.style.display = 'none';
 
     if (modalToShow) modalToShow.style.display = 'flex';
 }
@@ -276,9 +283,37 @@ function gameOver() {
     setTimeout(() => board.classList.remove('shake'), 300);
 }
 
+function loadingPage(fnc) {
+    gameState.isPaused = true;
+    document.querySelector('.loading-page').style.display = 'flex'
+    startGameModal.style.display = 'none'
+    gameOverModal.style.display = 'none'
+    gamePauseModal.style.display = 'none'
+    gameLevleModal.style.display = 'none'
+    sounds.loading.play()
+    setTimeout(() => {
+        sounds.loading.pause();
+        sounds.loading.currentTime = 0;
+        fnc();
+        gameLoadingPage.style.display = 'none'
+    }, 5000);
+}
+
+function toggleMute() {
+    gameState.isMuted = !gameState.isMuted;
+    localStorage.setItem("isMuted", gameState.isMuted);
+
+    Object.values(sounds).forEach(sound => {
+        sound.muted = gameState.isMuted;
+    });
+
+    if (gameState.isMuted) muteButton.innerHTML = "🔇";
+    else muteButton.innerHTML = "🔊";
+}
+
 function togglePause() {
     // Don't pause if game hasn't started or already over
-    if (!gameState.hasStarted) return; 
+    if (!gameState.hasStarted) return;
 
     if (gameState.isPaused) {
         // Resume
@@ -299,9 +334,9 @@ function togglePause() {
 
 function handleEnterAction() {
     if (startGameModal.style.display !== 'none') {
-        startGame();
+        loadingPage(startGame);
     } else if (gameOverModal.style.display !== 'none') {
-        restartGame();
+        loadingPage(restartGame);
     } else if (gamePauseModal.style.display !== 'none') {
         togglePause();
     }
@@ -316,7 +351,15 @@ speedButtons.forEach(btn => {
     btn.addEventListener('click', () => {
         speedButtons.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        gameState.speed = Number(btn.dataset.speed);
+        const newSpeed = Number(btn.dataset.speed);
+        // Same speed hai to kuch mat karo
+        if (gameState.speed === newSpeed) return;
+        // Game chal rahi hai aur paused nahi hai
+        if (gameState.hasStarted && !gameState.isPaused) return;
+        // Adding new speed value
+        gameState.speed = newSpeed;
+        // Agar game already start ho chuki hai
+        if (gameState.hasStarted) loadingPage(restartGame);
     });
 });
 
@@ -357,5 +400,7 @@ board.addEventListener('touchend', (e) => {
 });
 
 // Button controls
-startButton.addEventListener('click', startGame);
-restartButtons.forEach(btn => btn.addEventListener('click', restartGame));
+muteButton.addEventListener('click', toggleMute);
+resumeButton.addEventListener('click', togglePause);
+startButton.addEventListener('click', () => loadingPage(startGame));
+restartButtons.forEach(btn => btn.addEventListener('click', () => loadingPage(restartGame)));

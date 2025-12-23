@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="icon" href="data:,">
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
     <main>
@@ -17,41 +19,46 @@
                         <span id="high-score">0</span>
                     </h3>
                 </div>
-            
+
                 <div class="info">
                     <h3>Score:
                         <span id="score">0</span>
                     </h3>
                 </div>
-            
+
                 <div class="info">
                     <h3>Time:
                         <span id="time">00:00</span>
                     </h3>
                 </div>
             </div>
-            
+
             <div class="board">
             </div>
         </section>
         <div class="modal">
-            
+
+            <div class="loading-page">
+                <h3 class="loading-msg">Preparing game, please wait…</h3>
+                <div class="loader"></div>
+            </div>
+
             <div class="start-game">
                 <h3>Welcome to Snake Game</h3>
                 <button class="btn btn-start">Start Game</button>
             </div>
-            
+
             <div class="game-over">
                 <h3>Game Over</h3>
                 <button class="btn btn-restart">Restart Game</button>
             </div>
-            
+
             <div class="game-pause">
                 <h3>Game Paused</h3>
                 <button class="btn btn-resume">Resume</button>
                 <button class="btn btn-restart">Restart</button>
             </div>
-            
+
             <div class="game-levels">
                 <h3>Select Game Difficulty</h3>
                 <div class="btns">
@@ -62,9 +69,11 @@
                     <button class="level-btn btn" data-speed="50">Extreme</button>
                 </div>
             </div>
+            <button class="btn btn-mute">🔊</button>
         </div>
     </main>
 
     <script src="script.js"></script>
 </body>
+
 </html>
