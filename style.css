@@ -20,32 +20,41 @@ html, body {
     --text-primary-color: #f0f0f0;
     --text-secondary-color: #0000;
 
-    /* Spacing variables */
-    --space-xs: 4px;
-    --space-sm: 8px;
-    --space-md: 16px;
-    --space-lg: 24px;
-    --space-xl: 32px;
-    --space-2xl: 40px;
-    --space-3xl: 48px;
-    --space-4xl: 56px;
+    /* Responsive Spacing with clamp() */
+    --space-xs: clamp(2px, 0.5vw, 4px);
+    --space-sm: clamp(6px, 1vw, 8px);
+    --space-md: clamp(12px, 2vw, 16px);
+    --space-lg: clamp(18px, 3vw, 24px);
+    --space-xl: clamp(24px, 4vw, 32px);
+    --space-2xl: clamp(30px, 5vw, 40px);
+    --space-3xl: clamp(36px, 6vw, 48px);
+    --space-4xl: clamp(42px, 7vw, 56px);
 
     /* Border Color */
     --border-primary-color: #333333;
 
     /* Border Radius */
-    --space-border-xs: 4px;
-    --space-border-sm: 8px;
-    --space-border-md: 12px;
-    --space-border-lg: 16px;
-    --space-border-xl: 20px;
-    --space-border-2xl: 24px;
+    --space-border-xs: clamp(3px, 0.5vw, 4px);
+    --space-border-sm: clamp(6px, 1vw, 8px);
+    --space-border-md: clamp(10px, 1.5vw, 12px);
+    --space-border-lg: clamp(14px, 2vw, 16px);
+    --space-border-xl: clamp(18px, 2.5vw, 20px);
+    --space-border-2xl: clamp(22px, 3vw, 24px);
+
+    /* Responsive Font Size */
+    --font-xs: clamp(0.75rem, 2vw, 0.875rem);
+    --font-sm: clamp(0.875rem, 2.5vw, 1rem);
+    --font-md: clamp(1rem, 3vw, 1.125rem);
+    --font-lg: clamp(1.125rem, 3.5vw, 1.5rem);
+    --font-xl: clamp(1.5rem, 4vw, 2rem);
+    --font-2xl: clamp(2rem, 5vw, 2.5rem);
 }
 
 html {
     background-color: var(--bg-primary-color);
     color: var(--text-primary-color);
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-size: clamp(14px, 2vw, 16px); /* Root font size responsive */
 }
 
 main {
@@ -66,36 +75,35 @@ section {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: var(--space-md);
+    flex-wrap: wrap; /* Mobile pe Wrap ho jayege */
 }
 
 .info {
     border: 1px solid var(--border-primary-color);
-    padding: 20px 25px;
+    padding: var(--space-lg) var(--space-xl);
     border-radius: var(--space-border-md);
+    font-size: var(--font-sm);
+    min-width: clamp(120px, 30vw, 180px) /* Minmum aur maximum width */
 }
 
 .board {
     border: 2px solid var(--border-primary-color);
     flex-grow: 1;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(30px, 1fr));
-    grid-template-rows: repeat(auto-fill, minmax(30px, 1fr));
+    /* Responsive grid with auto-fit or minmax */
+    grid-template-columns: repeat(auto-fill, minmax(clamp(30px, 4vw, 30px), 1fr));
+    grid-template-rows: repeat(auto-fill, minmax(clamp(30px, 4vw, 30px), 1fr));
 }
 
 .block {
-    /* width: 30px;
-    height: 30px; */
     border-radius: 50%;
     border: 1px solid var(--border-primary-color);
 }
 
-.fill {
-    background-color: var(--bg-fill-color);
-}
+.fill { background-color: var(--bg-fill-color); }
 
-.food {
-    background-color: red;
-}
+.food { background-color: red; }
 
 .modal {
     height: 100vh;
@@ -108,6 +116,7 @@ section {
     justify-content: center;
     flex-direction: column;
     gap: var(--space-2xl);
+    padding: var(--space-md); /* Edges se spacing */
 }
 
 .modal .start-game, 
@@ -117,20 +126,16 @@ section {
     flex-direction: column;
     align-items: center;
     gap: var(--space-md);
+    text-align: center; /* Text center rahega mobile pe*/
 }
 
 .start-game h3, 
-.game-over h3{
-    font-size: var(--space-4xl);
-}
+.game-over h3,
+.game-pause h3 { font-size: var(--font-2xl) } /* Full responsive hending */
 
-.modal .game-over {
-    display: none;
-}
+.modal .game-over { display: none; }
 
-.modal .game-pause {
-    display: none;
-}
+.modal .game-pause { display: none; }
 
 .modal .game-levels {
     display: flex;
@@ -143,33 +148,32 @@ section {
     display: flex;
     flex-direction: column;
     gap: var(--space-border-md);
+    max-width: clamp(200px, 50vw, 300px); /* Button ka max width */
 }
 
 .btn {
-    padding: var(--space-md) var(--space-lg);
+    padding: var(--space-sm) var(--space-md);
     border: none;
     border-radius: var(--space-border-md);
-    font-size: var(--space-2xl);
+    font-size: var(--font-md);
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .btn:hover {
-    transform: scale(1.1);
+    transform: scale(1.05);
     background-color: var(--bg-btn-color);
     color: var(--text-primary-color);
 }
 
-.btn:active {
-    scale: 0.95;
-}
+.btn:active { scale: 0.95; }
 
 .level-btn {
     padding: var(--space-sm) var(--space-md);
     border: none;
-    border-radius: var(--space-border-md);
-    font-size: var(--space-md);
+    border-radius: var(--space-border-sm);
+    font-size: var(--font-sm);
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -178,4 +182,55 @@ section {
 .level-btn.active {
     background-color: var(--bg-btn-color);
     color: var(--bg-fill-color);
+}
+
+/* Tablet Size (481px to 786) */
+@media (max-width: 786px) {
+    section { gap: var(--space-lg); }
+
+    .infos { justify-content: center; }
+
+    .info { 
+        flex: 1 1 calc(50% - var(--space-md)); /* 2 columse on tablet */
+        min-width: 140px; 
+        text-align: center;
+    }
+
+}
+
+/* Mobile size (max 480px) */
+@media (max-width: 480px) {
+    section {
+        padding: var(--space-md);
+        gap: var(--space-md);
+    }
+
+    .infos { width: 100%; }
+
+    .info {
+        width: 100%;
+        text-align: center;
+    }
+
+    .board {
+        width: min(100%, 90vw); /* Screen ke according adjust */
+        height: min(100%, 90vw);
+        margin: 0 auto;
+    }
+
+    .btn:hover {
+        transform: scale(1.02); /* Mobile pe subtle hover */
+    }
+}
+
+/* Extra small devices */
+@media (max-width: 320px) {
+    html {
+        font-size: 14px;
+    }
+
+    .board {
+        grid-template-columns: repeat(auto-fit, minmax(15px, 1fr));
+        grid-template-rows: repeat(auto-fit, minmax(15px, 1fr));
+    }
 }
