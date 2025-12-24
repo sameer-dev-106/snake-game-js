@@ -320,6 +320,18 @@ section {
 
 .btn:active { scale: 0.95; }
 
+.btn-clear-score {
+    background: transparent;
+    border: 1px solid #ff4d4d;
+    color: #ff4d4d;
+}
+
+.btn-clear-score:hover {
+    background: #ff4d4d;
+    color: #000;
+}
+
+
 .level-btn {
     padding: var(--space-sm) var(--space-md);
     border: none;

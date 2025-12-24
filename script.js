@@ -11,6 +11,7 @@ const gameLoadingPage = document.querySelector('.loading-page');
 
 const startButton = document.querySelector('.btn-start');
 const restartButtons = document.querySelectorAll('.btn-restart');
+const clearScoreBtn = document.querySelector("#clear-score-btn");
 const resumeButton = document.querySelector('.btn-resume');
 const pauseButton = document.querySelector('.btn-pause');
 const speedButtons = document.querySelectorAll("[data-speed]");
@@ -53,15 +54,15 @@ let gameState = {
     highScore: parseInt(localStorage.getItem("highScore")) || 0,
     isMuted: JSON.parse(localStorage.getItem("isMuted")) || false,
     score: 0,
-    time: '00-00',
+    time: 0,
     speed: 300,
     direction: 'right',
     isPaused: false,
     hasStarted: false,
     intervalId: null,
     timeIntervalId: null,
-    food: generateRandomPosition(),
-    snake: [{ x: 3, y: 4 }],
+    snake: [getSafeSnakePosition()],
+    food: null,
     touchStart: { x: 0, y: 0 }
 };
 
@@ -70,7 +71,7 @@ highScoreElement.innerHTML = gameState.highScore;
 
 // cell creating
 function getCellSize() {
-    return parseInt( getComputedStyle(document.documentElement).getPropertyValue("--cell-size") );
+    return parseInt(getComputedStyle(document.documentElement).getPropertyValue("--cell-size"));
 }
 // ============================================
 // BOARD SETUP
@@ -93,16 +94,41 @@ createBoard();
 // ============================================
 // UTILITY FUNCTIONS
 // ============================================
-function generateRandomPosition() {
+function getSafeSnakePosition() {
     return {
-        x: Math.floor(Math.random() * ROWS),
-        y: Math.floor(Math.random() * COLS)
+        x: Math.floor(Math.random() * (ROWS - 6)) + 3,
+        y: Math.floor(Math.random() * (COLS - 6)) + 3
     };
+}
+
+function generateFoodPosition() {
+    let position;
+    let isOnSnake;
+
+    do {
+        position = {
+            x: Math.floor(Math.random() * ROWS),
+            y: Math.floor(Math.random() * COLS)
+        };
+
+        isOnSnake = gameState.snake.some(
+            seg => seg.x === position.x && seg.y === position.y
+        );
+
+    } while (isOnSnake);
+
+    return position;
+}
+
+function formatTime(totalSeconds) {
+    const min = Math.floor(totalSeconds / 60);
+    const sec = totalSeconds % 60;
+
+    return `${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
 }
 
 function updateDisplay() {
     scoreElement.innerHTML = gameState.score;
-    timeElement.innerHTML = gameState.time;
     highScoreElement.innerHTML = gameState.highScore;
 }
 
@@ -123,20 +149,21 @@ function hideModal() {
     gamePauseModal.style.display = 'none';
 }
 
+function updateClearScoreVisibility() {
+    const storedScore = localStorage.getItem("highScore");
+    clearScoreBtn.style.display = storedScore ? "block" : "none";
+}
+
 // ============================================
 // TIME COUNTER
 // ============================================
 function timeCounter() {
-    let [min, sec] = gameState.time.split('-').map(Number);
+    gameState.time++;
 
-    sec++;
-    if (sec === 60) {
-        min++;
-        sec = 0;
-    }
+    const min = Math.floor(gameState.time / 60);
+    const sec = gameState.time % 60;
 
-    gameState.time = `${String(min).padStart(2, '0')}-${String(sec).padStart(2, '0')}`;
-    updateDisplay();
+    timeElement.textContent = `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
 }
 
 // ============================================
@@ -168,7 +195,7 @@ function handleFoodEaten(head) {
     if (foodBlock) foodBlock.classList.remove('food');
 
     // Generate new food
-    gameState.food = generateRandomPosition();
+    gameState.food = generateFoodPosition();
     blocks[`${gameState.food.x}-${gameState.food.y}`].classList.add('food');
 
     // Grow snake
@@ -237,6 +264,14 @@ function startGame() {
     gameState.hasStarted = true;
     sounds.moving.play();
 
+    gameState.time = 0;
+    timeElement.textContent = "00:00";
+
+    const safePos = getSafeSnakePosition();
+    gameState.snake = [safePos];
+    gameState.food = generateFoodPosition();
+
+
     clearInterval(gameState.intervalId);
     clearInterval(gameState.timeIntervalId);
 
@@ -263,12 +298,16 @@ function restartGame() {
 
     // Reset game state
     gameState.score = 0;
-    gameState.time = '00-00';
+    gameState.time = 0;
+    timeElement.textContent = formatTime(0);
     gameState.direction = 'right';
     gameState.isPaused = false;
     gameState.hasStarted = true;
-    gameState.snake = [generateRandomPosition()];
-    gameState.food = generateRandomPosition();
+
+    // Snake and Food 
+    const safePos = getSafeSnakePosition();
+    gameState.snake = [safePos];
+    gameState.food = generateFoodPosition();
 
     // Update display
     updateDisplay();
@@ -289,7 +328,7 @@ function gameOver() {
     // Final Score showing
     finalScoreEl.textContent = gameState.score;
     finalHighScoreEl.textContent = gameState.highScore;
-    finalTimeEl.textContent = gameState.time;
+    finalTimeEl.textContent = formatTime(gameState.time);
 
     gameState.isPaused = false;
     gameState.hasStarted = false;
@@ -313,6 +352,16 @@ function loadingPage(fnc) {
         fnc();
         gameLoadingPage.style.display = 'none'
     }, 2000);
+}
+
+function clearHighScore() {
+    localStorage.removeItem("highScore");
+    gameState.highScore = 0;
+
+    highScoreElement.textContent = 0;
+    finalHighScoreEl.textContent = 0;
+
+    updateClearScoreVisibility();
 }
 
 function toggleMute() {
@@ -447,5 +496,6 @@ window.addEventListener('keydown', (e) => {
 muteButton.addEventListener('click', toggleMute);
 pauseButton.addEventListener('click', togglePause);
 resumeButton.addEventListener('click', togglePause);
+clearScoreBtn.addEventListener("click", clearHighScore);
 startButton.addEventListener('click', () => loadingPage(startGame));
 restartButtons.forEach(btn => btn.addEventListener('click', () => loadingPage(restartGame)));
