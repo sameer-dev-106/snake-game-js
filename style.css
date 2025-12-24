@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&display=swap');
+
 * {
     margin: 0;
     padding: 0;
@@ -48,6 +50,9 @@ html, body {
     --font-lg: clamp(1.125rem, 3.5vw, 1.5rem);
     --font-xl: clamp(1.5rem, 4vw, 2rem);
     --font-2xl: clamp(2rem, 5vw, 2.5rem);
+
+    /* block size */
+    --cell-size: 30px;
 }
 
 html {
@@ -92,8 +97,8 @@ section {
     flex-grow: 1;
     display: grid;
     /* Responsive grid with auto-fit or minmax */
-    grid-template-columns: repeat(auto-fill, minmax(clamp(30px, 4vw, 30px), 1fr));
-    grid-template-rows: repeat(auto-fill, minmax(clamp(30px, 4vw, 30px), 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(var(--cell-size), 1fr));
+    grid-template-rows: repeat(auto-fill, minmax(var(--cell-size), 1fr));
 }
 
 .block {
@@ -124,10 +129,37 @@ section {
     75% { transform: translateX(-5px); }
 }
 
+.arrows{
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.all-arrow-btns {
+    display: grid;
+    grid-template-columns: 60px 80px 60px;
+    grid-template-rows: 5px 15px 15px 5px;
+    grid-template-areas: 
+    " 0 up 1"
+    "left up right"
+    "left down right"
+    "2 down 4";
+    grid-gap: var(--space-border-sm);
+}
+
+.arrow-btn {
+    border: none;
+    border-radius: var(--space-border-md);
+    background: #fff;
+    cursor: pointer;
+    font-size: 22px;
+    /* touch-action: manipulation; */
+}
+
 /* Loding Animatio code */
 .loader {
     position: fixed;
-    top: 5%;
+    bottom: 15%;
     width: fit-content;
     font-weight: bold;
     font-family: monospace;
@@ -192,6 +224,27 @@ section {
 .game-over h3,
 .game-pause h3 { font-size: var(--font-2xl) } /* Full responsive hending */
 
+.loading-msg,
+.timer,
+.score {
+    font-family: monospace;
+    letter-spacing: 1px;
+}
+
+.author {
+    position: fixed;
+    top: 2%;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 2px;
+    opacity: 0;
+    animation: fadeIn 1.5s ease forwards;
+}
+
+@keyframes fadeIn {
+    to { opacity: 1; }
+}
+
+
 .modal .game-over { display: none; }
 
 .modal .game-pause { display: none; }
@@ -209,6 +262,20 @@ section {
     right: 5%;
     background-color: #111;
     border: 1px solid var(--bg-fill-color) !important;
+}
+
+.btn-pause {
+    position: fixed;
+    top: 1%;
+    right: 2%;
+    width: var(--space-2xl);
+    height: var(--space-2xl);
+    padding: 0 !important;
+    border-radius: 50% !important;
+    font-size: var(--font-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
 }
 
 .btns {
@@ -267,6 +334,11 @@ section {
 
 /* Mobile size (max 480px) */
 @media (max-width: 480px) {
+
+    :root {
+        --cell-size: 17px;
+    }
+
     section {
         padding: var(--space-md);
         gap: var(--space-md);
@@ -285,6 +357,10 @@ section {
         margin: 0 auto;
     }
 
+    .arrows {
+        display: flex;
+    }
+
     .btn:hover {
         transform: scale(1.02); /* Mobile pe subtle hover */
     }
@@ -299,5 +375,9 @@ section {
     .board {
         grid-template-columns: repeat(auto-fit, minmax(15px, 1fr));
         grid-template-rows: repeat(auto-fit, minmax(15px, 1fr));
+    }
+
+    .arrows {
+        display: flex;
     }
 }

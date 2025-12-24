@@ -4,8 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sanke Game</title>
-    <link rel="icon" href="data:,">
+    <title>Snake Game | Sameer</title>
+    <link rel="shortcut icon" href="./logo/snake-logo.png" type="image/x-icon">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -35,21 +36,34 @@
 
             <div class="board">
             </div>
+
+            <div class="arrows">
+                <div class="all-arrow-btns">
+                    <button id="leftBtn" class="arrow-btn" style="grid-area: left;"><i class="ri-arrow-left-line"></i></button>
+                    <button id="upBtn" class="arrow-btn" style="grid-area: up;"><i class="ri-arrow-up-line"></i></button>
+                    <button id="downBtn" class="arrow-btn" style="grid-area: down;"><i class="ri-arrow-down-line"></i></button>
+                    <button id="rightBtn" class="arrow-btn" style="grid-area: right;"><i class="ri-arrow-right-line"></i></button>
+                </div>
+                <button class="btn btn-pause">⏸️</button>
+            </div>
         </section>
         <div class="modal">
 
             <div class="loading-page">
-                <h3 class="loading-msg">Preparing game, please wait…</h3>
+                <h3 class="loading-msg">Preparing game by Sameer…</h3>
+                <p class="author">Built by Sameer 🐍</p>
                 <div class="loader"></div>
             </div>
 
             <div class="start-game">
-                <h3>Welcome to Snake Game</h3>
+                <h3 class="brand-name">🐍 Snake Game</h3>
+                <p class="author">Built by Sameer 🐍</p>
                 <button class="btn btn-start">Start Game</button>
             </div>
 
             <div class="game-over">
                 <h3>Game Over</h3>
+                <p class="author">Built by Sameer 🐍</p>
                 <button class="btn btn-restart">Restart Game</button>
             </div>
 

@@ -12,8 +12,11 @@ const gameLoadingPage = document.querySelector('.loading-page');
 const startButton = document.querySelector('.btn-start');
 const restartButtons = document.querySelectorAll('.btn-restart');
 const resumeButton = document.querySelector('.btn-resume');
+const pauseButton = document.querySelector('.btn-pause');
 const speedButtons = document.querySelectorAll("[data-speed]");
 const muteButton = document.querySelector('.btn-mute');
+
+const mobileArrowButtons = document.querySelectorAll('.arrow-btn');
 
 const highScoreElement = document.querySelector('#high-score');
 const scoreElement = document.querySelector('#score');
@@ -22,9 +25,9 @@ const timeElement = document.querySelector('#time');
 // ============================================
 // CONSTANTS
 // ============================================
-const BLOCK_SIZE = 30;
-const COLS = Math.floor(board.clientWidth / BLOCK_SIZE);
-const ROWS = Math.floor(board.clientHeight / BLOCK_SIZE);
+let CELL_SIZE = getCellSize();
+let COLS = Math.floor(board.clientWidth / CELL_SIZE);
+let ROWS = Math.floor(board.clientHeight / CELL_SIZE);
 
 // ============================================
 // AUDIO
@@ -61,6 +64,10 @@ let gameState = {
 // Initialize high score display
 highScoreElement.innerHTML = gameState.highScore;
 
+// cell creating
+function getCellSize() {
+    return parseInt( getComputedStyle(document.documentElement).getPropertyValue("--cell-size") );
+}
 // ============================================
 // BOARD SETUP
 // ============================================
@@ -375,6 +382,18 @@ addEventListener('keydown', (e) => {
     if (e.key === 'Enter') handleEnterAction();
 });
 
+// Mobile controls
+mobileArrowButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+        const direction = gameState.direction;
+
+        if (btn.id === "upBtn" && direction !== 'down') gameState.direction = 'up';
+        if (btn.id === "downBtn" && direction !== 'up') gameState.direction = 'down';
+        if (btn.id === "leftBtn" && direction !== 'right') gameState.direction = 'left';
+        if (btn.id === "rightBtn" && direction !== 'left') gameState.direction = 'right';
+    });
+});
+
 // Touch controls
 board.addEventListener('touchstart', (e) => {
     const touch = e.touches[0];
@@ -399,8 +418,25 @@ board.addEventListener('touchend', (e) => {
     }
 });
 
+
+window.addEventListener("resize", () => {
+    CELL_SIZE = getCellSize();
+    COLS = Math.floor(board.clientWidth / CELL_SIZE);
+    ROWS = Math.floor(board.clientHeight / CELL_SIZE);
+
+    board.innerHTML = "";
+    Object.keys(blocks).forEach(k => delete blocks[k]);
+
+    createBoard();
+});
+
+window.addEventListener('keydown', (e) => {
+    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(e.key)) e.preventDefault();
+});
+
 // Button controls
 muteButton.addEventListener('click', toggleMute);
+pauseButton.addEventListener('click', togglePause);
 resumeButton.addEventListener('click', togglePause);
 startButton.addEventListener('click', () => loadingPage(startGame));
 restartButtons.forEach(btn => btn.addEventListener('click', () => loadingPage(restartGame)));

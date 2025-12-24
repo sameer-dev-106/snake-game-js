@@ -1,7 +1,11 @@
-# 🐍 Snake Game (Vanilla JavaScript)
+<p align="center">
+  <img src="./logo/snake-logo.png" width="120" />
+</p>
+
+# 🐍 Snake Game by Sameer
 
 A fully featured **Snake Game** built using **Vanilla JavaScript**, HTML, and CSS.  
-This project focuses on **game logic, clean state management, responsiveness, mobile support, sound integration, and smooth UI transitions** without using any external libraries or frameworks.
+This project focuses on **game logic, clean state management, responsiveness, mobile support, sound integration, and smooth UI transitions**.
 
 ---
 
@@ -44,8 +48,6 @@ This project focuses on **game logic, clean state management, responsiveness, mo
 
 ## 🧩 Difficulty Levels
 
-You can select difficulty before starting or after restarting:
-
 - Very Easy  
 - Easy  
 - Medium  
@@ -66,12 +68,10 @@ Changing difficulty restarts the game with a short loading transition.
 
 ## 🎯 Learning Outcomes
 
-This project helped me practice:
-
 - Game loops using `setInterval`
 - Centralized state management with a `gameState` object
 - DOM manipulation and event handling
-- Keyboard and mobile touch input handling
+- Keyboard and mobile input handling
 - Collision detection logic
 - Audio handling and UX polish
 - Debugging and refactoring real-world code
@@ -90,10 +90,9 @@ This project helped me practice:
 
 ## 👨‍💻 Author
 
-**Sameer**  
+**Sameer 🐍**  
 Aspiring Full Stack Developer  
 
 ---
 
 ⭐ If you like this project, consider giving it a star!
-
