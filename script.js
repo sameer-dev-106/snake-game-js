@@ -22,6 +22,10 @@ const highScoreElement = document.querySelector('#high-score');
 const scoreElement = document.querySelector('#score');
 const timeElement = document.querySelector('#time');
 
+const finalScoreEl = document.querySelector("#final-score");
+const finalHighScoreEl = document.querySelector("#final-high-score");
+const finalTimeEl = document.querySelector("#final-time");
+
 // ============================================
 // CONSTANTS
 // ============================================
@@ -281,6 +285,11 @@ function gameOver() {
 
     sounds.gameOver.play();
     sounds.moving.pause();
+
+    // Final Score showing
+    finalScoreEl.textContent = gameState.score;
+    finalHighScoreEl.textContent = gameState.highScore;
+    finalTimeEl.textContent = gameState.time;
 
     gameState.isPaused = false;
     gameState.hasStarted = false;

@@ -17,6 +17,7 @@ html, body {
     --bg-primary-color: #0c0c0c;
     --bg-fill-color: #fcfcfc;
     --bg-btn-color: #333333;
+    --bg-secondary-color: #88888842;
 
     /* Text Colors */
     --text-primary-color: #f0f0f0;
@@ -244,9 +245,7 @@ section {
     to { opacity: 1; }
 }
 
-
-.modal .game-over { display: none; }
-
+.modal .game-over,
 .modal .game-pause { display: none; }
 
 .modal .game-levels {
@@ -255,6 +254,24 @@ section {
     align-items: center;
     gap: var(--space-border-sm);
 }
+
+.game-over .final-scores {
+    padding: var(--space-border-md);
+    margin-bottom: var(--space-sm);
+    background-color: var(--bg-secondary-color);
+    border-radius: var(--space-border-sm);
+}
+
+.game-over .final-score p {
+    font-size: var(--font-md);
+    opacity: 0.9;
+}
+
+.game-over span {
+    font-weight: 700;
+    color: #00ff88;
+}
+
 
 .btn-mute {
     position: fixed;
