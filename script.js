@@ -171,20 +171,24 @@ function timeCounter() {
 // ============================================
 function getNextHead() {
     const head = gameState.snake[0];
-    const moves = {
-        down: { x: head.x + 1, y: head.y },
-        up: { x: head.x - 1, y: head.y },
-        left: { x: head.x, y: head.y - 1 },
-        right: { x: head.x, y: head.y + 1 }
-    };
-    return moves[gameState.direction];
+    let next = { x: head.x, y: head.y };
+
+    if (gameState.direction === "up") next.x--;
+    if (gameState.direction === "down") next.x++;
+    if (gameState.direction === "left") next.y--;
+    if (gameState.direction === "right") next.y++;
+
+    // 🔁 WRAP LOGIC
+    if (next.x < 0) next.x = ROWS - 1;
+    if (next.x >= ROWS) next.x = 0;
+    if (next.y < 0) next.y = COLS - 1;
+    if (next.y >= COLS) next.y = 0;
+
+    return next;
 }
 
+
 function checkCollision(head) {
-    // Wall collision
-    if (head.x < 0 || head.x >= ROWS || head.y < 0 || head.y >= COLS) {
-        return true;
-    }
     // Self collision
     return gameState.snake.some(seg => seg.x === head.x && seg.y === head.y);
 }
